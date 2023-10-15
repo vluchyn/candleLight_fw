@@ -346,7 +346,7 @@ THE SOFTWARE.
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
 
-#elif defined(BOARD_quantulumltd_usbtocanfd_v0)
+#elif defined(BOARD_quantulumltd_usbtocanfd_v0) || defined(BOARD_quantulumltd_usbtocanfd_v1)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t *)"USBtoCANFD gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t *)"Quantulum Ltd"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t *)"USBtoCANFD firmware upgrade interface"
