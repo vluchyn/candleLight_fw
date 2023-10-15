@@ -351,6 +351,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t *)"Quantulum Ltd"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t *)"USBtoCANFD firmware upgrade interface"
 
+	#define CONFIG_EXTERNAL_SYS_CLK	 1
+
 	#define TIM2_CLOCK_SPEED		 64000000
 
 	#define CAN_CLOCK_SPEED			 40000000

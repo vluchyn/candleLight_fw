@@ -32,8 +32,8 @@ THE SOFTWARE.
 #include "hal_include.h"
 
 void device_sysclock_config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct;
-	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
 	/** Configure the main internal regulator output voltage
 	*/
@@ -41,18 +41,32 @@ void device_sysclock_config(void) {
 	/** Initializes the RCC Oscillators according to the specified parameters
 	* in the RCC_OscInitTypeDef structure.
 	*/
+#ifdef CONFIG_EXTERNAL_SYS_CLK
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_HSI48;
+	RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+#else
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
 	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
 	RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+#endif
+	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+#ifdef CONFIG_EXTERNAL_SYS_CLK
+	/* Use external 8Mhz clock generator */
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+	RCC_OscInitStruct.PLL.PLLN = 40;
+#else
+	/* Use internal 16Mhz RC oscillator */
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
 	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
 	RCC_OscInitStruct.PLL.PLLN = 20;
+#endif
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8; // RCC_PLLQ_DIV4 for 80Mhz CAN
 	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV5;
+
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 	/** Initializes the CPU, AHB and APB buses clocks
 	*/
