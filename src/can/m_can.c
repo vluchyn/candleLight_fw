@@ -138,6 +138,15 @@ void can_enable(can_data_t *channel, uint32_t mode)
 	HAL_FDCAN_Init(&channel->channel);
 	HAL_FDCAN_EnableISOMode(&channel->channel);
 
+	/*
+	** Enable automatic transceiver delay compensation as referenced:
+	** 	https://community.st.com/t5/stm32-mcu-products/stm32h7-fdcan-8-mbit-s-setup-docum-unclear-sync-seg/td-p/79992/page/3
+	*/
+	HAL_FDCAN_ConfigTxDelayCompensation(&channel->channel,
+										channel->channel.Init.DataTimeSeg1 * channel->channel.Init.DataPrescaler,
+										0U);
+	HAL_FDCAN_EnableTxDelayCompensation(&channel->channel);
+
 	/* Configure reception filter to Rx FIFO 0 on both FDCAN instances */
 	FDCAN_FilterTypeDef sFilterConfig = {
 		.IdType = FDCAN_STANDARD_ID,
