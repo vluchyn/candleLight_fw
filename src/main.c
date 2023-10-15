@@ -120,6 +120,8 @@ int main(void)
 		if (USBD_GS_CAN_DfuDetachRequested(&hUSB)) {
 			dfu_run_bootloader();
 		}
+
+		if (config.mainloop_callback) config.mainloop_callback();
 	}
 }
 

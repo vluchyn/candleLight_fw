@@ -182,7 +182,7 @@ static void quantulumltd_usbtocanfd_v1_setup(USBD_GS_CAN_HandleTypeDef *hcan)
 	/* External power fault indication */
 	GPIO_InitStruct.Pin = CAN_PWR_FLT_Pin;
 	GPIO_InitStruct.Mode = CAN_PWR_FLT_Mode;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(CAN_PWR_FLT_GPIO_Port, &GPIO_InitStruct);
 
@@ -229,6 +229,8 @@ static void quantulumltd_usbtocanfd_v1_phy_power_set(can_data_t *channel, bool e
 	}
 }
 
+static bool can_pwr_enabled;
+
 static void
 quantulumltd_usbtocanfd_v1_termination_set(can_data_t *channel,
 							  enum gs_can_termination_state enable)
@@ -245,15 +247,46 @@ quantulumltd_usbtocanfd_v1_termination_set(can_data_t *channel,
 	}
 
 	/* Enable external supply if termination is enabled on both channels (a hack I know) */
-	bool ext_pwr_enable = (0x3 == term_status);
-	HAL_GPIO_WritePin(LEDCANPWR_GPIO_Port, LEDCANPWR_Pin, ext_pwr_enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(CAN_PWR_GPIO_Port, CAN_PWR_Pin, ext_pwr_enable ? GPIO_PIN_RESET : GPIO_PIN_SET);
+	can_pwr_enabled = (0x3 == term_status);
+	HAL_GPIO_WritePin(LEDCANPWR_GPIO_Port, LEDCANPWR_Pin, can_pwr_enabled ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(CAN_PWR_GPIO_Port, CAN_PWR_Pin, can_pwr_enabled ? GPIO_PIN_RESET : GPIO_PIN_SET);
+}
+
+static void quantulumltd_usbtocanfd_v1_mainloop_callback(void)
+{
+	static uint32_t last_time;
+	static bool fault_toggle;
+	uint32_t curr_time = HAL_GetTick();
+
+	/* Every 100ms */
+	if ((curr_time - last_time) >= 100)
+	{
+		/* Check current fault status */
+		bool can_pwr_fault_status = (HAL_GPIO_ReadPin(CAN_PWR_FLT_GPIO_Port, CAN_PWR_FLT_Pin) == GPIO_PIN_RESET);
+
+		/* Toggle led state on each tick in the event of a fault */
+		if (can_pwr_fault_status)
+		{
+			fault_toggle = !fault_toggle;
+		}
+		else
+		{
+			fault_toggle = false;
+		}
+
+		/* Update CAN external power status LED */
+		HAL_GPIO_WritePin(LEDCANPWR_GPIO_Port, LEDCANPWR_Pin, can_pwr_enabled && !fault_toggle ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+		/* Reset timer */
+		last_time = curr_time;
+	}
 }
 
 const struct BoardConfig config = {
 	.setup = quantulumltd_usbtocanfd_v1_setup,
 	.phy_power_set = quantulumltd_usbtocanfd_v1_phy_power_set,
 	.termination_set = quantulumltd_usbtocanfd_v1_termination_set,
+	.mainloop_callback = quantulumltd_usbtocanfd_v1_mainloop_callback,
 	.channels[0] = {
 		.interface = FDCAN1,
 		.leds = {
