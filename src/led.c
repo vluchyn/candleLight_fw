@@ -34,16 +34,18 @@ THE SOFTWARE.
 
 void led_init(
 	led_data_t *leds,
-	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high,
-	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high
+	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high, bool led_rx_invert,
+	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high, bool led_tx_invert
 	) {
 	memset(leds, 0, sizeof(led_data_t));
 	leds->led_state[LED_RX].port = led_rx_port;
 	leds->led_state[LED_RX].pin = led_rx_pin;
 	leds->led_state[LED_RX].is_active_high = led_rx_active_high;
+	leds->led_state[LED_RX].invert = led_rx_invert;
 	leds->led_state[LED_TX].port = led_tx_port;
 	leds->led_state[LED_TX].pin = led_tx_pin;
 	leds->led_state[LED_TX].is_active_high = led_tx_active_high;
+	leds->led_state[LED_TX].invert = led_tx_invert;
 }
 
 void led_set_mode(led_data_t *leds,led_mode_t mode)
@@ -103,7 +105,7 @@ static void led_update_normal_mode(led_state_t *led, uint32_t now)
 		led_trx_blinker(led, now);
 	}
 
-	led_set(led, SEQ_ISPASSED(now, led->off_until));
+	led_set(led, led->invert ^ SEQ_ISPASSED(now, led->off_until));
 }
 
 static void led_update_sequence(led_data_t *leds)
