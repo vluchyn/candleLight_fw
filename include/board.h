@@ -33,6 +33,7 @@ struct LEDConfig {
 	GPIO_TypeDef *port;
 	uint16_t pin;
 	bool active_high;
+	bool invert;
 };
 
 struct BoardChannelConfig {

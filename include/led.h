@@ -55,6 +55,7 @@ typedef struct {
 	void* port;
 	uint16_t pin;
 	bool is_active_high;
+	bool invert;
 
 	bool blink_request;
 	uint32_t on_until;
@@ -75,8 +76,8 @@ typedef struct {
 
 void led_init(
 	led_data_t *leds,
-	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high,
-	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high
+	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high, bool led_rx_invert,
+	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high, bool led_tx_invert
 	);
 void led_set_mode(led_data_t *leds,led_mode_t mode);
 void led_run_sequence(led_data_t *leds, const led_seq_step_t *sequence, int32_t num_repeat);
