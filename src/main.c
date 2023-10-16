@@ -77,8 +77,8 @@ int main(void)
 		INIT_LIST_HEAD(&channel->list_from_host);
 
 		led_init(&channel->leds,
-				 led_config[LED_RX].port, led_config[LED_RX].pin, led_config[LED_RX].active_high,
-				 led_config[LED_TX].port, led_config[LED_TX].pin, led_config[LED_TX].active_high);
+				 led_config[LED_RX].port, led_config[LED_RX].pin, led_config[LED_RX].active_high, led_config[LED_RX].invert,
+				 led_config[LED_TX].port, led_config[LED_TX].pin, led_config[LED_TX].active_high, led_config[LED_TX].invert);
 
 		/* nice wake-up pattern */
 		for (uint8_t j = 0; j < 10; j++) {
