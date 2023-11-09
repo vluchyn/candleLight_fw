@@ -283,6 +283,31 @@ uint32_t can_get_error_status(can_data_t *channel)
 	/* Write 7 to LEC so we know if it gets set to the same thing again */
 	channel->channel.Instance->PSR = 7;
 
+	/*
+	** tiny bit dirty - bxcan manages recovery from bus-off automatically (if the ABOM bit is set), the m_can module does not
+	** If the module goes bus-off the init bit is automatically set by the hardware, placing the module back into configuration
+	** mode. Therefore if the PSR indicates we've gone bus off, but the module reports it's enabled, clear the init bit to start
+	** the bus-off recovery sequence.
+	*/
+	if (	(0U != (err & FDCAN_PSR_BO))
+		 && can_is_enabled(channel)
+		 && (0U != (channel->channel.Instance->CCCR & FDCAN_CCCR_INIT))
+	   )
+	{
+		/* Clear init bit to re-start module */
+		CLEAR_BIT(channel->channel.Instance->CCCR, FDCAN_CCCR_INIT);
+
+		/* Wait for the bit to clear (it takes time to transfer to the can clock domain and back) */
+		for (uint32_t uiCounter = 0; uiCounter < 100U; uiCounter++)
+		{
+			if (0U == (channel->channel.Instance->CCCR & FDCAN_CCCR_INIT))
+			{
+				/* Init complete, stop waiting */
+				break;
+			}
+		}
+	}
+
 	return err;
 }
 
