@@ -6,7 +6,7 @@ on:
     - cron:  '15 0 * * 1'
   push:
   pull_request:
-    branches: [ master ]
+    branches: [ multichannel ]
 
 env:
   BUILD_TYPE: Release
